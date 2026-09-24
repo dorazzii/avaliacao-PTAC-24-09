@@ -43,8 +43,24 @@ function App() {
     return () => controle.abort()
   }, [])
 
-  
+  function cancelar() {
+    setEditando(null)
+    setTitulo('')
+    setTexto('')
+    setErroForm(null)
   }
+
+  function iniciarEdicao(aviso) {
+    setEditando(aviso)
+    setTitulo(aviso.title)
+    setTexto(aviso.body)
+    setErroForm(null)
+  }
+
+
+  async function enviar(e) {
+    e.preventDefault()
+
 
     if (!titulo.trim() || !texto.trim()) {
       setErroForm('Preencha o título e o texto antes de publicar.')
@@ -66,7 +82,32 @@ function App() {
             body: texto,
           }),
         })
-       
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+        const data = await resp.json()
+        setAvisos(prev => prev.map(a => (a.id === editando.id ? data : a)))
+      } else {
+        const resp = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: 1, title: titulo, body: texto }),
+        })
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+        const data = await resp.json()
+
+        const maiorId = avisos.reduce((acc, a) => Math.max(acc, a.id), 0)
+        const novo = { userId: data.userId, id: maiorId + 1, title: data.title, body: data.body }
+        setAvisos(prev => [novo, ...prev])
+      }
+      cancelar()
+    } catch (e) {
+
+      setErroForm(`Não foi possível salvar o aviso (${e.message}). Tente novamente.`)
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+
   async function excluir(id) {
     const anterior = avisos
     setErro(null)
@@ -88,7 +129,18 @@ function App() {
         <p>PTAC4 — avisos e recados da turma</p>
       </header>
 
-      
+      <div className="layout">
+        <FormularioAviso
+          titulo={titulo}
+          texto={texto}
+          onTitulo={setTitulo}
+          onTexto={setTexto}
+          editando={editando}
+          enviando={enviando}
+          erro={erroForm}
+          onSubmit={enviar}
+          onCancelar={cancelar}
+        />
         <ListaAvisos
           avisos={avisos}
           carregando={carregando}
