@@ -1,121 +1,107 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
+import FormularioAviso from './FormularioAviso'
+import ListaAvisos from './ListaAvisos'
+
+const API = 'https://jsonplaceholder.typicode.com/posts'
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const [avisos, setAvisos] = useState([])
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState(null)
+
+
+  const [titulo, setTitulo] = useState('')
+  const [texto, setTexto] = useState('')
+  const [editando, setEditando] = useState(null)
+  const [enviando, setEnviando] = useState(false)
+  const [erroForm, setErroForm] = useState(null)
+
+
+  useEffect(() => {
+    const controle = new AbortController()
+    const signal = controle.signal
+
+    async function buscar() {
+      try {
+        setCarregando(true)
+        setErro(null)
+        const resp = await fetch(`${API}?_limit=15`, { signal })
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+        const data = await resp.json()
+        setAvisos(data)
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          setErro('Não foi possível conectar à API. Verifique sua conexão e recarregue a página.')
+        }
+      } finally {
+        setCarregando(false)
+      }
+    }
+    buscar()
+
+    return () => controle.abort()
+  }, [])
+
+  
+  }
+
+    if (!titulo.trim() || !texto.trim()) {
+      setErroForm('Preencha o título e o texto antes de publicar.')
+      return
+    }
+
+    setEnviando(true)
+    setErroForm(null)
+
+    try {
+      if (editando) {
+        const resp = await fetch(`${API}/${editando.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: editando.userId,
+            id: editando.id,
+            title: titulo,
+            body: texto,
+          }),
+        })
+       
+  async function excluir(id) {
+    const anterior = avisos
+    setErro(null)
+    setAvisos(anterior.filter(a => a.id !== id))
+    if (editando && editando.id === id) cancelar()
+    try {
+      const resp = await fetch(`${API}/${id}`, { method: 'DELETE' })
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+    } catch (e) {
+      setAvisos(anterior)
+      setErro(`Não foi possível excluir o aviso (${e.message}). Ele voltou para a lista.`)
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <header className="cabecalho">
+        <h1>Mural de Avisos</h1>
+        <p>PTAC4 — avisos e recados da turma</p>
+      </header>
 
-      <div className="ticks"></div>
+      
+        <ListaAvisos
+          avisos={avisos}
+          carregando={carregando}
+          erro={erro}
+          onEditar={iniciarEdicao}
+          onExcluir={excluir}
+        />
+      </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <footer className="rodape">
+        Vite + React + fetch GET/POST/PUT/DELETE · jsonplaceholder.typicode.com/posts
+      </footer>
+    </div>
   )
 }
 
