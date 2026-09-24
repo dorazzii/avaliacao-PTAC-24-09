@@ -6,6 +6,7 @@ Aplicação web em React em que qualquer pessoa publica um aviso com título e t
 
 ## Como instalar e rodar
 
+cd mural-de-avisos
 npm install
 npm run dev
 
