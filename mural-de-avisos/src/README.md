@@ -14,4 +14,4 @@ Depois, abra http://localhost:5173 no navegador.
 
 ## API utilizada
 
-`https://jsonplaceholder.typicode.com/posts`
+`https://jsonplaceholder.typicode.com/posts` .
