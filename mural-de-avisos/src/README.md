@@ -6,9 +6,9 @@ Aplicação web em React em que qualquer pessoa publica um aviso com título e t
 
 ## Como instalar e rodar
 
-cd mural-de-avisos
-npm install
-npm run dev
+cd mural-de-avisos<br>
+npm install<br>
+npm run dev<br>
 
 Depois, abra http://localhost:5173 no navegador.
 
